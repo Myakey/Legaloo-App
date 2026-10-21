@@ -28,6 +28,8 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.graphicsLayer
@@ -38,7 +40,7 @@ import org.ambatujudge.legaloo.ui.theme.LocalExtraColors
 import org.ambatujudge.legaloo.viewmodel.HomeViewModel
 
 @Composable
-fun HomeScreen(viewModel: HomeViewModel, onContinueClick: (Int) -> Unit, modifier: Modifier = Modifier) {
+fun HomeScreen(viewModel: HomeViewModel, onContinueClick: (Int) -> Unit, onReminderClick: () -> Unit = {}, modifier: Modifier = Modifier) {
     val progress by viewModel.progress.collectAsState()
     val currentCourse = viewModel.getCurrentCourse()
     val extra = LocalExtraColors.current
@@ -48,6 +50,13 @@ fun HomeScreen(viewModel: HomeViewModel, onContinueClick: (Int) -> Unit, modifie
         Spacer(Modifier.height(16.dp))
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Halo, ${progress.userName}!", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onBackground, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+            Icon(
+                imageVector = Icons.Filled.Notifications,
+                contentDescription = "Pengingat belajar",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(40.dp).clip(CircleShape).clickable { onReminderClick() }.padding(8.dp),
+            )
+            Spacer(Modifier.width(4.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Filled.LocalFireDepartment, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(28.dp).graphicsLayer { scaleX = flameScale; scaleY = flameScale })
                 Spacer(Modifier.width(8.dp))

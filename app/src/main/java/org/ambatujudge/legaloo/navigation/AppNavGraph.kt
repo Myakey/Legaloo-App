@@ -18,6 +18,7 @@ import org.ambatujudge.legaloo.ui.screens.WelcomeScreen
 import org.ambatujudge.legaloo.viewmodel.CourseViewModel
 import org.ambatujudge.legaloo.viewmodel.HomeViewModel
 import org.ambatujudge.legaloo.ui.screens.CourseMaterial1Screen
+import org.ambatujudge.legaloo.ui.screens.ReminderScreen
 
 @Composable
 fun AppNavGraph(navController: NavHostController, courseViewModel: CourseViewModel, homeViewModel: HomeViewModel, modifier: Modifier = Modifier) {
@@ -29,7 +30,13 @@ fun AppNavGraph(navController: NavHostController, courseViewModel: CourseViewMod
         composable(Routes.WELCOME) { WelcomeScreen(onStartClick = { navController.navigate(Routes.REGISTER) }, onLoginClick = { navController.navigate(Routes.LOGIN) }) }
         composable(Routes.REGISTER) { RegisterScreen(viewModel = viewModel(), onRegistered = enterApp, onLoginClick = { navController.navigate(Routes.LOGIN) { popUpTo(Routes.WELCOME) } }) }
         composable(Routes.LOGIN) { LoginScreen(viewModel = viewModel(), onLoggedIn = enterApp, onRegisterClick = { navController.navigate(Routes.REGISTER) { popUpTo(Routes.WELCOME) } }) }
-        composable(Routes.HOME) { HomeScreen(viewModel = homeViewModel, onContinueClick = { id -> navController.navigate(Routes.courseContent(id)) }) }
+        composable(Routes.HOME) {
+            HomeScreen(
+                viewModel = homeViewModel,
+                onContinueClick = { id -> navController.navigate(Routes.courseContent(id)) },
+                onReminderClick = { navController.navigate(Routes.REMINDER) },
+            )
+        }
         composable(Routes.CHAT) { PlaceholderScreen("Tanya Legaloo") }
         composable(Routes.PROFILE) { PlaceholderScreen("Profil") }
         composable(Routes.COURSES) { CourseListScreen(viewModel = courseViewModel, onCourseClick = { id -> navController.navigate(Routes.courseContent(id)) }) }
@@ -47,5 +54,9 @@ fun AppNavGraph(navController: NavHostController, courseViewModel: CourseViewMod
                 onFinish = { navController.popBackStack() },
             )
         }
+        composable(Routes.REMINDER) {
+            ReminderScreen(onBack = { navController.popBackStack() })
+        }
+
     }
 }

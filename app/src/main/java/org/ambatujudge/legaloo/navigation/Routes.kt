@@ -14,4 +14,5 @@ object Routes {
     fun courseContent(courseId: Int) = "course_content/$courseId"
     const val COURSE_MATERIAL_1 = "course_material_1"
 
+    const val REMINDER = "reminder"
 }
