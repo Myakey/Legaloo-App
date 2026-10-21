@@ -35,4 +35,8 @@ object DummyData {
         week = listOf(StudyDay("S",true),StudyDay("S",true),StudyDay("R",true),StudyDay("K",true),StudyDay("J",true),StudyDay("S",false),StudyDay("M",false)),
         currentCourseId = 1, currentUnitNumber = 2
     )
+    val accounts: List<UserAccount> = listOf(
+        UserAccount("Budi Santoso", "budi@legaloo.id", "legaloo123"),
+        UserAccount("Siti Rahmawati", "siti.rahma@gmail.com", "hukum2026")
+    )
 }

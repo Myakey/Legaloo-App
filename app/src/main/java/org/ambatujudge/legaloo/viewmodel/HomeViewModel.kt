@@ -7,9 +7,11 @@ import org.ambatujudge.legaloo.data.UserProgress
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 class HomeViewModel : ViewModel() {
     private val _progress = MutableStateFlow(DummyData.userProgress)
     val progress: StateFlow<UserProgress> = _progress.asStateFlow()
+    fun setUserName(name: String) = _progress.update { it.copy(userName = name) }
     fun getCurrentCourse(): Course? = DummyData.courses.firstOrNull { it.id == _progress.value.currentCourseId }
 }

@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -16,8 +17,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import org.ambatujudge.legaloo.navigation.AppNavGraph
+import org.ambatujudge.legaloo.navigation.Routes
 import org.ambatujudge.legaloo.ui.components.LegalooBottomBar
 import org.ambatujudge.legaloo.ui.theme.LegalooTheme
 import org.ambatujudge.legaloo.viewmodel.CourseViewModel
@@ -39,13 +40,15 @@ fun LegalooApp() {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     Scaffold(containerColor = MaterialTheme.colorScheme.background, bottomBar = {
-        LegalooBottomBar(currentRoute = currentRoute, onItemClick = { route ->
-            navController.navigate(route) {
-                popUpTo(navController.graph.findStartDestination().id)
-                launchSingleTop = true
-            }
-        })
+        if (currentRoute != null && currentRoute !in Routes.AUTH_ROUTES) {
+            LegalooBottomBar(currentRoute = currentRoute, onItemClick = { route ->
+                navController.navigate(route) {
+                    popUpTo(Routes.HOME)
+                    launchSingleTop = true
+                }
+            })
+        }
     }) { innerPadding ->
-        AppNavGraph(navController = navController, courseViewModel = courseViewModel, homeViewModel = homeViewModel, modifier = Modifier.padding(innerPadding))
+        AppNavGraph(navController = navController, courseViewModel = courseViewModel, homeViewModel = homeViewModel, modifier = Modifier.padding(innerPadding).consumeWindowInsets(innerPadding))
     }
 }

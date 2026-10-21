@@ -16,7 +16,8 @@ data class LegalooExtraColors(
     val secondaryEdge: Color,
     val activeRing: Color,
     val lockedFill: Color,
-    val lockedEdge: Color
+    val lockedEdge: Color,
+    val fieldFill: Color
 )
 
 private val LightExtra = LegalooExtraColors(
@@ -24,7 +25,8 @@ private val LightExtra = LegalooExtraColors(
     secondaryEdge = LegalooYellowEdge,
     activeRing = LegalooBlueRing,
     lockedFill = LegalooTrack,
-    lockedEdge = LegalooLockedEdge
+    lockedEdge = LegalooLockedEdge,
+    fieldFill = LegalooFieldFill
 )
 
 private val DarkExtra = LegalooExtraColors(
@@ -32,7 +34,8 @@ private val DarkExtra = LegalooExtraColors(
     secondaryEdge = LegalooYellowEdge,
     activeRing = DarkRing,
     lockedFill = DarkTrack,
-    lockedEdge = DarkLockedEdge
+    lockedEdge = DarkLockedEdge,
+    fieldFill = DarkFieldFill
 )
 
 val LocalExtraColors = staticCompositionLocalOf { LightExtra }
@@ -50,7 +53,8 @@ private val LightColors = lightColorScheme(
     onSurface = LegalooNavy,
     surfaceVariant = LegalooTrack,
     onSurfaceVariant = LegalooSlate,
-    outline = LegalooBorder
+    outline = LegalooBorder,
+    error = LegalooRed
 )
 
 private val DarkColors = darkColorScheme(
@@ -66,7 +70,8 @@ private val DarkColors = darkColorScheme(
     onSurface = DarkOnSurface,
     surfaceVariant = DarkTrack,
     onSurfaceVariant = DarkSlate,
-    outline = DarkBorder
+    outline = DarkBorder,
+    error = DarkRed
 )
 
 @Composable

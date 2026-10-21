@@ -9,3 +9,5 @@ data class Course(val id: Int, val number: Int, val title: String, val progress:
 
 data class StudyDay(val label: String, val completed: Boolean)
 data class UserProgress(val userName: String, val streakCount: Int, val minutesStudied: Int, val dailyGoalMinutes: Int, val week: List<StudyDay>, val currentCourseId: Int, val currentUnitNumber: Int)
+
+data class UserAccount(val name: String, val email: String, val password: String)
