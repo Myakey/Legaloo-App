@@ -17,6 +17,7 @@ import org.ambatujudge.legaloo.ui.screens.RegisterScreen
 import org.ambatujudge.legaloo.ui.screens.WelcomeScreen
 import org.ambatujudge.legaloo.viewmodel.CourseViewModel
 import org.ambatujudge.legaloo.viewmodel.HomeViewModel
+import org.ambatujudge.legaloo.ui.screens.CourseMaterial1Screen
 
 @Composable
 fun AppNavGraph(navController: NavHostController, courseViewModel: CourseViewModel, homeViewModel: HomeViewModel, modifier: Modifier = Modifier) {
@@ -34,7 +35,17 @@ fun AppNavGraph(navController: NavHostController, courseViewModel: CourseViewMod
         composable(Routes.COURSES) { CourseListScreen(viewModel = courseViewModel, onCourseClick = { id -> navController.navigate(Routes.courseContent(id)) }) }
         composable(route = Routes.COURSE_CONTENT, arguments = listOf(navArgument(Routes.COURSE_ID_ARG) { type = NavType.IntType })) { back ->
             val id = back.arguments?.getInt(Routes.COURSE_ID_ARG) ?: -1
-            CourseContentScreen(courseId = id, viewModel = courseViewModel)
+            CourseContentScreen(
+                courseId = id,
+                viewModel = courseViewModel,
+                onStartLesson = { navController.navigate(Routes.COURSE_MATERIAL_1) },
+            )
+        }
+        composable(Routes.COURSE_MATERIAL_1) {
+            CourseMaterial1Screen(
+                onClose = { navController.popBackStack() },
+                onFinish = { navController.popBackStack() },
+            )
         }
     }
 }

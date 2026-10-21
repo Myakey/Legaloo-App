@@ -12,4 +12,6 @@ object Routes {
     const val COURSE_CONTENT = "course_content/{courseId}"
     val AUTH_ROUTES = setOf(WELCOME, REGISTER, LOGIN)
     fun courseContent(courseId: Int) = "course_content/$courseId"
+    const val COURSE_MATERIAL_1 = "course_material_1"
+
 }
