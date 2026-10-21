@@ -1,4 +1,4 @@
-package org.umn.utstest.ui.screens
+package org.ambatujudge.legaloo.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,13 +14,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import org.umn.utstest.data.Course
-import org.umn.utstest.ui.theme.LocalExtraColors
-import org.umn.utstest.ui.components.pressClickable
-import org.umn.utstest.ui.components.pressOffset
-import org.umn.utstest.ui.components.rememberAnimatedProgress
-import org.umn.utstest.ui.components.rememberPressState
-import org.umn.utstest.viewmodel.CourseViewModel
+import org.ambatujudge.legaloo.data.Course
+import org.ambatujudge.legaloo.ui.theme.LocalExtraColors
+import org.ambatujudge.legaloo.ui.components.pressClickable
+import org.ambatujudge.legaloo.ui.components.pressOffset
+import org.ambatujudge.legaloo.ui.components.rememberAnimatedProgress
+import org.ambatujudge.legaloo.ui.components.rememberPressState
+import org.ambatujudge.legaloo.viewmodel.CourseViewModel
 
 @Composable
 fun CourseListScreen(viewModel: CourseViewModel, onCourseClick: (Int) -> Unit, modifier: Modifier = Modifier) {
@@ -80,5 +80,5 @@ private fun CourseProgressBar(progress: Float, modifier: Modifier = Modifier) {
 @androidx.compose.ui.tooling.preview.Preview(showBackground = true, widthDp = 395, heightDp = 850)
 @Composable
 private fun CourseListPreview() {
-    org.umn.utstest.ui.theme.LegalooTheme { CourseListScreen(CourseViewModel(), {}) }
+    org.ambatujudge.legaloo.ui.theme.LegalooTheme { CourseListScreen(CourseViewModel(), {}) }
 }

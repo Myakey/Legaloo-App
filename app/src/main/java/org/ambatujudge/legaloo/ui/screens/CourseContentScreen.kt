@@ -1,4 +1,4 @@
-package org.umn.utstest.ui.screens
+package org.ambatujudge.legaloo.ui.screens
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -44,15 +44,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.umn.utstest.data.LevelNode
-import org.umn.utstest.data.LevelState
-import org.umn.utstest.data.LevelType
-import org.umn.utstest.ui.components.pressClickable
-import org.umn.utstest.ui.components.pressOffset
-import org.umn.utstest.ui.components.rememberPressState
-import org.umn.utstest.ui.theme.LegalooTheme
-import org.umn.utstest.ui.theme.LocalExtraColors
-import org.umn.utstest.viewmodel.CourseViewModel
+import org.ambatujudge.legaloo.data.LevelNode
+import org.ambatujudge.legaloo.data.LevelState
+import org.ambatujudge.legaloo.data.LevelType
+import org.ambatujudge.legaloo.ui.components.pressClickable
+import org.ambatujudge.legaloo.ui.components.pressOffset
+import org.ambatujudge.legaloo.ui.components.rememberPressState
+import org.ambatujudge.legaloo.ui.theme.LegalooTheme
+import org.ambatujudge.legaloo.ui.theme.LocalExtraColors
+import org.ambatujudge.legaloo.viewmodel.CourseViewModel
 import kotlinx.coroutines.launch
 
 private val nodeOffsets = listOf(0, -56, -14, 42, 0, -56, -14, 42)

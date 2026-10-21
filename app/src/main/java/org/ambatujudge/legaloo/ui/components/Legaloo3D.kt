@@ -1,4 +1,4 @@
-package org.umn.utstest.ui.components
+package org.ambatujudge.legaloo.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,7 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.umn.utstest.ui.theme.LocalExtraColors
+import org.ambatujudge.legaloo.ui.theme.LocalExtraColors
 
 @Composable
 fun LegalooCard(modifier: Modifier = Modifier, containerColor: Color = MaterialTheme.colorScheme.surface, borderColor: Color = MaterialTheme.colorScheme.outline, edgeColor: Color = MaterialTheme.colorScheme.outline, content: @Composable ColumnScope.() -> Unit) {

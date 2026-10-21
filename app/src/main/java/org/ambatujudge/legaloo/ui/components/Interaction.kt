@@ -1,4 +1,4 @@
-package org.umn.utstest.ui.components
+package org.ambatujudge.legaloo.ui.components
 
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState

@@ -4,13 +4,13 @@ plugins {
 }
 
 android {
-    namespace = "org.umn.utstest"
+    namespace = "org.ambatujudge.legaloo"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "org.umn.utstest"
+        applicationId = "org.ambatujudge.legaloo"
         minSdk = 27
         targetSdk = 37
         versionCode = 1

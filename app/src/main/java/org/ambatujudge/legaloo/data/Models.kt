@@ -1,4 +1,4 @@
-package org.umn.utstest.data
+package org.ambatujudge.legaloo.data
 
 enum class LevelState { COMPLETED, ACTIVE, LOCKED }
 enum class LevelType { LESSON, PRACTICE }

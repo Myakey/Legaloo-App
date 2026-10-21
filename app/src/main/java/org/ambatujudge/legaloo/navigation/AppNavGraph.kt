@@ -1,4 +1,4 @@
-package org.umn.utstest.navigation
+package org.ambatujudge.legaloo.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -7,12 +7,12 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import org.umn.utstest.ui.screens.CourseContentScreen
-import org.umn.utstest.ui.screens.CourseListScreen
-import org.umn.utstest.ui.screens.HomeScreen
-import org.umn.utstest.ui.screens.PlaceholderScreen
-import org.umn.utstest.viewmodel.CourseViewModel
-import org.umn.utstest.viewmodel.HomeViewModel
+import org.ambatujudge.legaloo.ui.screens.CourseContentScreen
+import org.ambatujudge.legaloo.ui.screens.CourseListScreen
+import org.ambatujudge.legaloo.ui.screens.HomeScreen
+import org.ambatujudge.legaloo.ui.screens.PlaceholderScreen
+import org.ambatujudge.legaloo.viewmodel.CourseViewModel
+import org.ambatujudge.legaloo.viewmodel.HomeViewModel
 
 @Composable
 fun AppNavGraph(navController: NavHostController, courseViewModel: CourseViewModel, homeViewModel: HomeViewModel, modifier: Modifier = Modifier) {

@@ -1,4 +1,4 @@
-package org.umn.utstest.navigation
+package org.ambatujudge.legaloo.navigation
 
 object Routes {
     const val HOME = "home"

@@ -1,4 +1,4 @@
-package org.umn.utstest.ui.components
+package org.ambatujudge.legaloo.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,7 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import org.umn.utstest.navigation.Routes
+import org.ambatujudge.legaloo.navigation.Routes
 
 data class BottomNavItem(val label: String, val route: String, val icon: ImageVector)
 

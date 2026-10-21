@@ -1,4 +1,4 @@
-package org.umn.utstest.data
+package org.ambatujudge.legaloo.data
 
 object DummyData {
     val courses: List<Course> = listOf(

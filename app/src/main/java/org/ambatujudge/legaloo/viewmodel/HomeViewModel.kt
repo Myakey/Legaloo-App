@@ -1,9 +1,9 @@
-package org.umn.utstest.viewmodel
+package org.ambatujudge.legaloo.viewmodel
 
 import androidx.lifecycle.ViewModel
-import org.umn.utstest.data.Course
-import org.umn.utstest.data.DummyData
-import org.umn.utstest.data.UserProgress
+import org.ambatujudge.legaloo.data.Course
+import org.ambatujudge.legaloo.data.DummyData
+import org.ambatujudge.legaloo.data.UserProgress
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

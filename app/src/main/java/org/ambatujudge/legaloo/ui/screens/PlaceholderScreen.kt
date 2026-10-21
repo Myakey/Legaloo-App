@@ -1,4 +1,4 @@
-package org.umn.utstest.ui.screens
+package org.ambatujudge.legaloo.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.background

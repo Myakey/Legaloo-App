@@ -1,4 +1,4 @@
-package org.umn.utstest.ui.screens
+package org.ambatujudge.legaloo.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -16,9 +16,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.umn.utstest.data.StudyDay
-import org.umn.utstest.ui.components.LegalooButton
-import org.umn.utstest.ui.components.LegalooCard
+import org.ambatujudge.legaloo.data.StudyDay
+import org.ambatujudge.legaloo.ui.components.LegalooButton
+import org.ambatujudge.legaloo.ui.components.LegalooCard
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
@@ -31,11 +31,11 @@ import androidx.compose.animation.core.tween
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.graphicsLayer
-import org.umn.utstest.ui.components.rememberAnimatedProgress
+import org.ambatujudge.legaloo.ui.components.rememberAnimatedProgress
 import kotlinx.coroutines.delay
-import org.umn.utstest.ui.theme.LegalooTheme
-import org.umn.utstest.ui.theme.LocalExtraColors
-import org.umn.utstest.viewmodel.HomeViewModel
+import org.ambatujudge.legaloo.ui.theme.LegalooTheme
+import org.ambatujudge.legaloo.ui.theme.LocalExtraColors
+import org.ambatujudge.legaloo.viewmodel.HomeViewModel
 
 @Composable
 fun HomeScreen(viewModel: HomeViewModel, onContinueClick: (Int) -> Unit, modifier: Modifier = Modifier) {
