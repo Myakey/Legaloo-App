@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Legaloo"
+rootProject.name = "uts test"
 include(":app")
