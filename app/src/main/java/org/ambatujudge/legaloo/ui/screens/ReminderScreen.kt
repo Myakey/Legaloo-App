@@ -1,5 +1,8 @@
 package org.ambatujudge.legaloo.ui.screens
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -36,6 +39,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -48,11 +52,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.ambatujudge.legaloo.ui.components.NotificationHelper
 import org.ambatujudge.legaloo.ui.components.pressClickable
 import org.ambatujudge.legaloo.ui.components.pressOffset
 import org.ambatujudge.legaloo.ui.components.rememberPressState
@@ -83,12 +89,29 @@ fun ReminderScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+    val context = LocalContext.current
+    LaunchedEffect(Unit) { NotificationHelper.createChannel(context) }
+
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) {
+            val msg = reminderMessages[messageIndex]
+            NotificationHelper.show(context, msg.title, msg.body)
+        } else {
+            scope.launch {
+                snackbarHostState.currentSnackbarData?.dismiss()
+                snackbarHostState.showSnackbar("Izin notifikasi ditolak. Aktifkan lewat Pengaturan.")
+            }
+        }
+    }
+
+    // Validasi: pengingat aktif wajib punya minimal 1 hari
     val daysError = enabled && days.isEmpty()
     val canSave = enabled && !daysError && !isSaving
     val timeText = "%02d.%02d".format(hour, minute)
 
     Box(modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Column(modifier = Modifier.fillMaxSize()) {
+            // Top bar
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -105,8 +128,10 @@ fun ReminderScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                 modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
+                // Pratinjau notifikasi
                 NotificationPreview(message = reminderMessages[messageIndex], dimmed = !enabled)
 
+                // Switch utama
                 SectionCard {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(modifier = Modifier.weight(1f)) {
@@ -119,6 +144,7 @@ fun ReminderScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                         Switch(
                             checked = enabled,
                             onCheckedChange = { want ->
+                                // Mockup izin notifikasi (hanya sekali)
                                 if (want && !permissionGranted) showPermissionDialog = true else enabled = want
                             },
                             colors = SwitchDefaults.colors(checkedTrackColor = MaterialTheme.colorScheme.primary),
@@ -126,6 +152,7 @@ fun ReminderScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                     }
                 }
 
+                // Pemilih jam
                 SectionCard(dimmed = !enabled) {
                     SectionTitle("Waktu pengingat")
                     Spacer(Modifier.height(8.dp))
@@ -136,6 +163,7 @@ fun ReminderScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                     }
                 }
 
+                // Pemilih hari
                 SectionCard(dimmed = !enabled) {
                     SectionTitle("Ulangi pada hari")
                     Spacer(Modifier.height(12.dp))
@@ -152,6 +180,7 @@ fun ReminderScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                     }
                 }
 
+                // Gaya pesan
                 SectionCard(dimmed = !enabled) {
                     SectionTitle("Gaya pesan")
                     reminderMessages.forEachIndexed { index, msg ->
@@ -167,7 +196,22 @@ fun ReminderScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
                 Spacer(Modifier.height(8.dp))
             }
 
-            Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp)) {
+            // Tombol bawah
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                ReminderButton(
+                    text = "COBA NOTIFIKASI", outlined = true,
+                    onClick = {
+                        if (NotificationHelper.hasPermission(context)) {
+                            val msg = reminderMessages[messageIndex]
+                            NotificationHelper.show(context, msg.title, msg.body)
+                        } else {
+                            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        }
+                    },
+                )
                 ReminderButton(
                     text = "SIMPAN PENGINGAT", loading = isSaving, enabled = canSave,
                     onClick = {
@@ -183,13 +227,17 @@ fun ReminderScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
             }
         }
 
-        SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 88.dp, start = 16.dp, end = 16.dp, top = 16.dp)) { data ->
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 156.dp, start = 16.dp, end = 16.dp, top = 16.dp),
+        ) { data ->
             Snackbar(shape = MaterialTheme.shapes.large, containerColor = MaterialTheme.colorScheme.onSurface, contentColor = MaterialTheme.colorScheme.surface) {
                 Text(text = data.visuals.message, style = MaterialTheme.typography.titleMedium.copy(fontSize = 15.sp))
             }
         }
     }
 
+    // Dialog izin (mockup)
     if (showPermissionDialog) {
         AlertDialog(
             onDismissRequest = { showPermissionDialog = false },
@@ -204,6 +252,8 @@ fun ReminderScreen(onBack: () -> Unit, modifier: Modifier = Modifier) {
         )
     }
 }
+
+/* ---------- Komponen ---------- */
 
 @Composable
 private fun NotificationPreview(message: ReminderMessage, dimmed: Boolean) {
@@ -280,16 +330,27 @@ private fun DayChip(label: String, selected: Boolean, enabled: Boolean, onClick:
 }
 
 @Composable
-private fun ReminderButton(text: String, loading: Boolean, enabled: Boolean, onClick: () -> Unit) {
+private fun ReminderButton(
+    text: String,
+    loading: Boolean = false,
+    enabled: Boolean = true,
+    outlined: Boolean = false,
+    onClick: () -> Unit,
+) {
     val press = rememberPressState(maxDepth = 4.dp)
+    val face = if (outlined) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.secondary
+    val edge = if (outlined) MaterialTheme.colorScheme.outline else LocalExtraColors.current.secondaryEdge
+    val contentColor = if (outlined) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
     Box(modifier = Modifier.fillMaxWidth().height(56.dp).alpha(if (enabled || loading) 1f else 0.5f).pressClickable(press) { if (enabled) onClick() }) {
-        Box(modifier = Modifier.fillMaxWidth().height(52.dp).offset(y = 4.dp).background(LocalExtraColors.current.secondaryEdge, MaterialTheme.shapes.large))
+        Box(modifier = Modifier.fillMaxWidth().height(52.dp).offset(y = 4.dp).background(edge, MaterialTheme.shapes.large))
         Box(
-            modifier = Modifier.pressOffset(press).fillMaxWidth().height(52.dp).background(MaterialTheme.colorScheme.secondary, MaterialTheme.shapes.large),
+            modifier = Modifier.pressOffset(press).fillMaxWidth().height(52.dp)
+                .background(face, MaterialTheme.shapes.large)
+                .then(if (outlined) Modifier.border(2.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.large) else Modifier),
             contentAlignment = Alignment.Center,
         ) {
-            if (loading) CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 3.dp, color = MaterialTheme.colorScheme.onSurface)
-            else Text(text, style = MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp), color = MaterialTheme.colorScheme.onSurface)
+            if (loading) CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 3.dp, color = contentColor)
+            else Text(text, style = MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp), color = contentColor)
         }
     }
 }
