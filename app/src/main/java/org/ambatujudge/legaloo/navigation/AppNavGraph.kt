@@ -11,25 +11,25 @@ import androidx.navigation.navArgument
 import org.ambatujudge.legaloo.ui.screens.CourseContentScreen
 import org.ambatujudge.legaloo.ui.screens.CourseListScreen
 import org.ambatujudge.legaloo.ui.screens.HomeScreen
+import org.ambatujudge.legaloo.ui.screens.LessonScreen
 import org.ambatujudge.legaloo.ui.screens.LoginScreen
 import org.ambatujudge.legaloo.ui.screens.PlaceholderScreen
+import org.ambatujudge.legaloo.ui.screens.ProfileScreen
 import org.ambatujudge.legaloo.ui.screens.RegisterScreen
+import org.ambatujudge.legaloo.ui.screens.ReminderScreen
 import org.ambatujudge.legaloo.ui.screens.WelcomeScreen
 import org.ambatujudge.legaloo.viewmodel.CourseViewModel
 import org.ambatujudge.legaloo.viewmodel.HomeViewModel
-import org.ambatujudge.legaloo.ui.screens.CourseMaterial1Screen
-import org.ambatujudge.legaloo.ui.screens.ReminderScreen
 
 @Composable
-fun AppNavGraph(navController: NavHostController, courseViewModel: CourseViewModel, homeViewModel: HomeViewModel, modifier: Modifier = Modifier) {
-    val enterApp = { name: String ->
-        homeViewModel.setUserName(name)
-        navController.navigate(Routes.HOME) { popUpTo(Routes.WELCOME) { inclusive = true } }
+fun AppNavGraph(navController: NavHostController, courseViewModel: CourseViewModel, homeViewModel: HomeViewModel, startDestination: String, modifier: Modifier = Modifier) {
+    val enterApp = { _: String ->
+        navController.navigate(Routes.HOME) { popUpTo(navController.graph.id) { inclusive = true } }
     }
-    NavHost(navController = navController, startDestination = Routes.WELCOME, modifier = modifier) {
+    NavHost(navController = navController, startDestination = startDestination, modifier = modifier) {
         composable(Routes.WELCOME) { WelcomeScreen(onStartClick = { navController.navigate(Routes.REGISTER) }, onLoginClick = { navController.navigate(Routes.LOGIN) }) }
-        composable(Routes.REGISTER) { RegisterScreen(viewModel = viewModel(), onRegistered = enterApp, onLoginClick = { navController.navigate(Routes.LOGIN) { popUpTo(Routes.WELCOME) } }) }
-        composable(Routes.LOGIN) { LoginScreen(viewModel = viewModel(), onLoggedIn = enterApp, onRegisterClick = { navController.navigate(Routes.REGISTER) { popUpTo(Routes.WELCOME) } }) }
+        composable(Routes.REGISTER) { RegisterScreen(viewModel = viewModel(), onRegistered = enterApp, onLoginClick = { navController.navigate(Routes.LOGIN) { popUpTo(Routes.REGISTER) { inclusive = true } } }) }
+        composable(Routes.LOGIN) { LoginScreen(viewModel = viewModel(), onLoggedIn = enterApp, onRegisterClick = { navController.navigate(Routes.REGISTER) { popUpTo(Routes.LOGIN) { inclusive = true } } }) }
         composable(Routes.HOME) {
             HomeScreen(
                 viewModel = homeViewModel,
@@ -38,18 +38,29 @@ fun AppNavGraph(navController: NavHostController, courseViewModel: CourseViewMod
             )
         }
         composable(Routes.CHAT) { PlaceholderScreen("Tanya Legaloo") }
-        composable(Routes.PROFILE) { PlaceholderScreen("Profil") }
+        composable(Routes.PROFILE) {
+            ProfileScreen(onLogout = {
+                navController.navigate(Routes.WELCOME) { popUpTo(navController.graph.id) { inclusive = true } }
+            })
+        }
         composable(Routes.COURSES) { CourseListScreen(viewModel = courseViewModel, onCourseClick = { id -> navController.navigate(Routes.courseContent(id)) }) }
         composable(route = Routes.COURSE_CONTENT, arguments = listOf(navArgument(Routes.COURSE_ID_ARG) { type = NavType.IntType })) { back ->
             val id = back.arguments?.getInt(Routes.COURSE_ID_ARG) ?: -1
             CourseContentScreen(
                 courseId = id,
                 viewModel = courseViewModel,
-                onStartLesson = { navController.navigate(Routes.COURSE_MATERIAL_1) },
+                onStartLesson = { levelId -> navController.navigate(Routes.lesson(id, levelId)) },
             )
         }
-        composable(Routes.COURSE_MATERIAL_1) {
-            CourseMaterial1Screen(
+        composable(
+            route = Routes.LESSON,
+            arguments = listOf(
+                navArgument(Routes.COURSE_ID_ARG) { type = NavType.IntType },
+                navArgument(Routes.LEVEL_ID_ARG) { type = NavType.IntType },
+            ),
+        ) {
+            LessonScreen(
+                viewModel = viewModel(),
                 onClose = { navController.popBackStack() },
                 onFinish = { navController.popBackStack() },
             )
@@ -57,6 +68,5 @@ fun AppNavGraph(navController: NavHostController, courseViewModel: CourseViewMod
         composable(Routes.REMINDER) {
             ReminderScreen(onBack = { navController.popBackStack() })
         }
-
     }
 }

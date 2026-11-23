@@ -46,6 +46,10 @@ fun RegisterScreen(viewModel: RegisterViewModel, onRegistered: (String) -> Unit,
         LegalooTextField(label = "Kata sandi", value = state.password, onValueChange = viewModel::onPasswordChange, placeholder = "password", error = state.passwordError, enabled = !state.isLoading, isPassword = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { submit() }))
+        state.formError?.let {
+            Spacer(Modifier.height(8.dp))
+            Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+        }
     }
 }
 

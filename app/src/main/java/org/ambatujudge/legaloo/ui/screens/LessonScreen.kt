@@ -25,15 +25,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -44,68 +43,63 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.ambatujudge.legaloo.data.Example
+import org.ambatujudge.legaloo.data.LessonStep
+import org.ambatujudge.legaloo.data.StepContent
+import org.ambatujudge.legaloo.ui.components.LoadStatus
 import org.ambatujudge.legaloo.ui.components.pressClickable
 import org.ambatujudge.legaloo.ui.components.pressOffset
 import org.ambatujudge.legaloo.ui.components.rememberPressState
-import org.ambatujudge.legaloo.ui.theme.LegalooTheme
 import org.ambatujudge.legaloo.ui.theme.LocalExtraColors
+import org.ambatujudge.legaloo.viewmodel.LessonViewModel
 
-private const val TOTAL_STEPS = 3
 private val CorrectGreen = Color(0xFF2E9E5B)
 
-private data class QuizOption(val text: String, val isCorrect: Boolean)
-
-private const val quizQuestion = "Kamu ingin menyeberang jalan, tetapi lampu pejalan kaki berwarna merah. Apa yang harus kamu lakukan?"
-private val quizOptions = listOf(
-    QuizOption("Berlari cepat menyeberang", false),
-    QuizOption("Menunggu sampai lampu pejalan kaki hijau", true),
-    QuizOption("Menyeberang sambil bermain HP", false),
-    QuizOption("Mengikuti teman yang sudah menyeberang", false),
-)
-
 @Composable
-fun CourseMaterial1Screen(onClose: () -> Unit, onFinish: () -> Unit, modifier: Modifier = Modifier) {
-    var step by rememberSaveable { mutableIntStateOf(0) }
-    var selected by rememberSaveable { mutableIntStateOf(-1) }
-    var checked by rememberSaveable { mutableStateOf(false) }
+fun LessonScreen(viewModel: LessonViewModel, onClose: () -> Unit, onFinish: () -> Unit, modifier: Modifier = Modifier) {
+    val state by viewModel.state.collectAsState()
+    LaunchedEffect(state.finished) { if (state.finished) onFinish() }
 
-    BackHandler(enabled = step > 0) { step-- }
+    val lesson = state.lesson
+    if (lesson == null || lesson.steps.isEmpty()) {
+        Column(modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding()) {
+            CloseRow(onClose = onClose)
+            // 403 (locked) and 404 messages come straight from the server.
+            LoadStatus(error = state.loadError ?: if (lesson != null) "Materi belum tersedia" else null, onRetry = viewModel::load)
+        }
+        return
+    }
 
-    val progress by animateFloatAsState(targetValue = (step + 1) / TOTAL_STEPS.toFloat(), label = "progress")
-    val isQuiz = step == TOTAL_STEPS - 1
+    BackHandler(enabled = state.step > 0) { viewModel.back() }
+
+    val step = lesson.steps[state.step]
+    val quiz = state.quiz
+    val progress by animateFloatAsState(targetValue = (state.step + 1) / state.totalSteps.toFloat(), label = "progress")
 
     Column(modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding()) {
-        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = Icons.Filled.Close, contentDescription = "Tutup",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(28.dp).clip(CircleShape).clickable { onClose() },
-            )
+        CloseRow(onClose = onClose) {
             Box(modifier = Modifier.padding(horizontal = 14.dp).weight(1f).height(12.dp).clip(CircleShape).background(MaterialTheme.colorScheme.outline)) {
                 Box(modifier = Modifier.fillMaxHeight().fillMaxWidth(progress).clip(CircleShape).background(MaterialTheme.colorScheme.secondary))
             }
-            Text("${step + 1}/$TOTAL_STEPS", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("${state.step + 1}/${state.totalSteps}", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
 
         Column(modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp)) {
-            when (step) {
-                0 -> StepIntro()
-                1 -> StepExamples()
-                else -> StepQuiz(selected = selected, checked = checked, onSelect = { if (!checked) selected = it })
-            }
+            StepView(step = step, selected = state.selected, checked = state.isChecked, onSelect = viewModel::select)
             Spacer(Modifier.height(16.dp))
             Mascot(
                 message = when {
-                    step == 0 -> "Ayo kita lanjut!"
-                    step == 1 -> "Perhatikan lampunya ya!"
-                    !checked -> "Pilih jawabanmu!"
-                    quizOptions[selected].isCorrect -> "Hebat, kamu benar!"
+                    quiz == null || !state.isChecked -> step.mascotMessage
+                    state.selectedIsCorrect -> "Hebat, kamu benar!"
                     else -> "Tidak apa-apa, coba lagi nanti!"
                 },
             )
+            state.submitError?.let {
+                Spacer(Modifier.height(12.dp))
+                Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+            }
             Spacer(Modifier.height(16.dp))
         }
 
@@ -116,70 +110,89 @@ fun CourseMaterial1Screen(onClose: () -> Unit, onFinish: () -> Unit, modifier: M
                 edge = MaterialTheme.colorScheme.outline,
                 contentColor = MaterialTheme.colorScheme.primary,
                 borderColor = MaterialTheme.colorScheme.outline,
+                enabled = !state.isSubmitting,
                 modifier = Modifier.weight(0.4f),
-                onClick = { if (step == 0) onClose() else { step--; checked = false } },
+                onClick = { if (!viewModel.back()) onClose() },
             )
             MaterialButton(
-                text = when { !isQuiz -> "LANJUT"; !checked -> "PERIKSA"; else -> "SELESAI" },
+                text = when {
+                    quiz != null && !state.isChecked -> "PERIKSA"
+                    !state.isLastStep -> "LANJUT"
+                    else -> "SELESAI"
+                },
                 face = MaterialTheme.colorScheme.secondary,
                 edge = LocalExtraColors.current.secondaryEdge,
                 contentColor = MaterialTheme.colorScheme.onSurface,
-                enabled = !isQuiz || selected >= 0,
+                enabled = (quiz == null || state.selected >= 0) && !state.isSubmitting,
+                loading = state.isSubmitting,
                 modifier = Modifier.weight(0.6f),
-                onClick = {
-                    when {
-                        !isQuiz -> step++
-                        !checked -> checked = true
-                        else -> onFinish()
-                    }
-                },
+                onClick = viewModel::primary,
             )
         }
     }
 }
 
 @Composable
-private fun StepIntro() {
-    ModeBadge("MODE BACA")
-    Spacer(Modifier.height(12.dp))
-    Text("Rambu dan Lampu Lalu Lintas", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onBackground)
-    Spacer(Modifier.height(16.dp))
-    ContentCard {
-        Text(
-            "Jalan raya punya aturan supaya semua orang aman. Rambu dan lampu lalu lintas adalah tandanya.",
-            style = MaterialTheme.typography.bodyLarge.copy(fontSize = 17.sp, lineHeight = 28.sp),
-            color = MaterialTheme.colorScheme.onSurface,
+private fun CloseRow(onClose: () -> Unit, content: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit = {}) {
+    Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            imageVector = Icons.Filled.Close, contentDescription = "Tutup",
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(28.dp).clip(CircleShape).clickable { onClose() },
         )
-        Spacer(Modifier.height(16.dp))
-        Text(
-            "Lampu merah artinya berhenti, kuning artinya hati-hati, dan hijau artinya boleh jalan. Pejalan kaki menyeberang di zebra cross saat lampu pejalan kaki berwarna hijau.",
-            style = MaterialTheme.typography.bodyLarge.copy(fontSize = 17.sp, lineHeight = 28.sp),
-            color = MaterialTheme.colorScheme.onSurface,
-        )
+        content()
     }
 }
 
 @Composable
-private fun StepExamples() {
-    ModeBadge("MODE BACA")
+private fun StepView(step: LessonStep, selected: Int, checked: Boolean, onSelect: (Int) -> Unit) {
+    ModeBadge(step.modeLabel)
     Spacer(Modifier.height(12.dp))
-    Text("Menyeberang dengan Aman", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onBackground)
-    Spacer(Modifier.height(16.dp))
-    ExampleCard(label = "CONTOH BAIK", labelColor = CorrectGreen, caption = "Lampu pejalan kaki hijau. Anak menyeberang di zebra cross.", pedestrianGreen = true, showCar = false)
-    Spacer(Modifier.height(12.dp))
-    ExampleCard(label = "CONTOH BURUK", labelColor = MaterialTheme.colorScheme.error, caption = "Lampu pejalan kaki merah, tetapi anak tetap menyeberang. Berbahaya!", pedestrianGreen = false, showCar = true)
+    when (val content = step.content) {
+        is StepContent.Read -> {
+            step.title?.let { StepTitle(it) }
+            ContentCard {
+                content.paragraphs.forEachIndexed { i, paragraph ->
+                    if (i > 0) Spacer(Modifier.height(16.dp))
+                    Text(paragraph, style = MaterialTheme.typography.bodyLarge.copy(fontSize = 17.sp, lineHeight = 28.sp), color = MaterialTheme.colorScheme.onSurface)
+                }
+            }
+        }
+        is StepContent.Examples -> {
+            step.title?.let { StepTitle(it) }
+            content.examples.forEachIndexed { i, example ->
+                if (i > 0) Spacer(Modifier.height(12.dp))
+                ExampleCard(example)
+            }
+        }
+        is StepContent.Quiz -> StepQuiz(content, selected = selected, checked = checked, onSelect = onSelect)
+    }
 }
 
 @Composable
-private fun ExampleCard(label: String, labelColor: Color, caption: String, pedestrianGreen: Boolean, showCar: Boolean) {
+private fun StepTitle(text: String) {
+    Text(text, style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onBackground)
+    Spacer(Modifier.height(16.dp))
+}
+
+@Composable
+private fun ExampleCard(example: Example) {
     ContentCard {
-        Text(label, style = MaterialTheme.typography.labelLarge, color = labelColor)
+        Text(example.label, style = MaterialTheme.typography.labelLarge, color = if (example.tone == "GOOD") CorrectGreen else MaterialTheme.colorScheme.error)
         Spacer(Modifier.height(8.dp))
-        Canvas(modifier = Modifier.fillMaxWidth().height(150.dp).clip(MaterialTheme.shapes.medium)) {
-            drawCrossing(pedestrianGreen, showCar)
+        // Unknown or missing illustration keys show no picture.
+        val crossing = when (example.illustration) {
+            "CROSSING_GREEN" -> true to false
+            "CROSSING_RED_CAR" -> false to true
+            else -> null
         }
-        Spacer(Modifier.height(8.dp))
-        Text(caption, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+        if (crossing != null) {
+            Canvas(modifier = Modifier.fillMaxWidth().height(150.dp).clip(MaterialTheme.shapes.medium)) {
+                drawCrossing(pedestrianGreen = crossing.first, showCar = crossing.second)
+            }
+            Spacer(Modifier.height(8.dp))
+        }
+        Text(example.caption, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
     }
 }
 
@@ -210,17 +223,14 @@ private fun DrawScope.drawCrossing(pedestrianGreen: Boolean, showCar: Boolean) {
     drawArc(Color(0xFF3B2A20), 180f, 180f, true, Offset(cx - h * 0.08f, h * 0.4f), Size(h * 0.16f, h * 0.14f))
 }
 
-
 @Composable
-private fun StepQuiz(selected: Int, checked: Boolean, onSelect: (Int) -> Unit) {
-    ModeBadge("MODE KUIS")
-    Spacer(Modifier.height(12.dp))
-    Text(quizQuestion, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onBackground)
+private fun StepQuiz(quiz: StepContent.Quiz, selected: Int, checked: Boolean, onSelect: (Int) -> Unit) {
+    Text(quiz.question, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onBackground)
     Spacer(Modifier.height(16.dp))
-    quizOptions.forEachIndexed { index, option ->
+    quiz.options.forEachIndexed { index, option ->
         val isSelected = index == selected
         val borderColor = when {
-            checked && option.isCorrect -> CorrectGreen
+            checked && option.correct -> CorrectGreen
             checked && isSelected -> MaterialTheme.colorScheme.error
             isSelected -> MaterialTheme.colorScheme.primary
             else -> MaterialTheme.colorScheme.outline
@@ -228,7 +238,7 @@ private fun StepQuiz(selected: Int, checked: Boolean, onSelect: (Int) -> Unit) {
         Box(
             modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp)
                 .clip(MaterialTheme.shapes.large)
-                .background(if (isSelected || (checked && option.isCorrect)) borderColor.copy(alpha = 0.10f) else MaterialTheme.colorScheme.surface)
+                .background(if (isSelected || (checked && option.correct)) borderColor.copy(alpha = 0.10f) else MaterialTheme.colorScheme.surface)
                 .border(2.dp, borderColor, MaterialTheme.shapes.large)
                 .clickable(enabled = !checked) { onSelect(index) }
                 .padding(horizontal = 16.dp, vertical = 14.dp),
@@ -238,15 +248,14 @@ private fun StepQuiz(selected: Int, checked: Boolean, onSelect: (Int) -> Unit) {
     }
     if (checked) {
         Spacer(Modifier.height(4.dp))
-        val correct = quizOptions[selected].isCorrect
+        val correct = quiz.options.getOrNull(selected)?.correct == true
         Text(
-            text = if (correct) "Benar! Tunggu lampu pejalan kaki hijau sebelum menyeberang." else "Kurang tepat. Jawaban yang benar: tunggu sampai lampu pejalan kaki hijau.",
+            text = if (correct) quiz.feedbackCorrect else quiz.feedbackWrong,
             style = MaterialTheme.typography.titleMedium,
             color = if (correct) CorrectGreen else MaterialTheme.colorScheme.error,
         )
     }
 }
-
 
 @Composable
 private fun ModeBadge(text: String) {
@@ -292,10 +301,11 @@ private fun MaterialButton(
     modifier: Modifier = Modifier,
     borderColor: Color? = null,
     enabled: Boolean = true,
+    loading: Boolean = false,
     onClick: () -> Unit,
 ) {
     val press = rememberPressState(maxDepth = 4.dp)
-    Box(modifier = modifier.height(56.dp).alpha(if (enabled) 1f else 0.5f).pressClickable(press) { if (enabled) onClick() }) {
+    Box(modifier = modifier.height(56.dp).alpha(if (enabled || loading) 1f else 0.5f).pressClickable(press) { if (enabled) onClick() }) {
         Box(modifier = Modifier.fillMaxWidth().height(52.dp).offset(y = 4.dp).background(edge, MaterialTheme.shapes.large))
         Box(
             modifier = Modifier.pressOffset(press).fillMaxWidth().height(52.dp)
@@ -303,11 +313,8 @@ private fun MaterialButton(
                 .then(if (borderColor != null) Modifier.border(2.dp, borderColor, MaterialTheme.shapes.large) else Modifier),
             contentAlignment = Alignment.Center,
         ) {
-            Text(text, style = MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp), color = contentColor)
+            if (loading) CircularProgressIndicator(color = contentColor, strokeWidth = 3.dp, modifier = Modifier.size(24.dp))
+            else Text(text, style = MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp), color = contentColor)
         }
     }
 }
-
-@Preview(showBackground = true, widthDp = 360, heightDp = 780)
-@Composable
-private fun CourseMaterial1Preview() { LegalooTheme { CourseMaterial1Screen(onClose = {}, onFinish = {}) } }

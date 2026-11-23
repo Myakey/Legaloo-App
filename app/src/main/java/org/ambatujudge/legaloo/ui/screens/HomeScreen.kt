@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import org.ambatujudge.legaloo.data.StudyDay
 import org.ambatujudge.legaloo.ui.components.LegalooButton
 import org.ambatujudge.legaloo.ui.components.LegalooCard
+import org.ambatujudge.legaloo.ui.components.LoadStatus
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
@@ -41,8 +42,12 @@ import org.ambatujudge.legaloo.viewmodel.HomeViewModel
 
 @Composable
 fun HomeScreen(viewModel: HomeViewModel, onContinueClick: (Int) -> Unit, onReminderClick: () -> Unit = {}, modifier: Modifier = Modifier) {
-    val progress by viewModel.progress.collectAsState()
-    val currentCourse = viewModel.getCurrentCourse()
+    val loaded by viewModel.progress.collectAsState()
+    val courses by viewModel.courses.collectAsState()
+    val error by viewModel.error.collectAsState()
+    LaunchedEffect(Unit) { viewModel.refresh() }
+    val progress = loaded ?: return LoadStatus(error = error, onRetry = viewModel::refresh, modifier = modifier.background(MaterialTheme.colorScheme.background))
+    val currentCourse = courses.firstOrNull { it.id == progress.currentCourseId }
     val extra = LocalExtraColors.current
     val flameTransition = rememberInfiniteTransition(label = "flame")
     val flameScale by flameTransition.animateFloat(initialValue = 1f, targetValue = 1.18f, animationSpec = infiniteRepeatable(animation = tween(durationMillis = 700, easing = FastOutSlowInEasing), repeatMode = RepeatMode.Reverse), label = "flameScale")

@@ -2,13 +2,13 @@ package org.ambatujudge.legaloo.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.ambatujudge.legaloo.data.AuthRepository
+import org.ambatujudge.legaloo.data.remote.ApiException
 
 data class LoginUiState(
     val email: String = "",
@@ -34,11 +34,17 @@ class LoginViewModel : ViewModel() {
         if (checked.emailError != null || checked.passwordError != null) { _state.value = checked; return }
         _state.value = checked.copy(isLoading = true, formError = null)
         viewModelScope.launch {
-            delay(800)
-            val account = AuthRepository.login(current.email, current.password)
-            _state.update {
-                if (account == null) it.copy(isLoading = false, formError = "Email atau kata sandi salah")
-                else it.copy(isLoading = false, loggedInName = account.name)
+            try {
+                val user = AuthRepository.login(current.email.trim(), current.password)
+                _state.update { it.copy(isLoading = false, loggedInName = user.name) }
+            } catch (e: ApiException) {
+                _state.update {
+                    when (e.field) {
+                        "email" -> it.copy(isLoading = false, emailError = e.detail)
+                        "password" -> it.copy(isLoading = false, passwordError = e.detail)
+                        else -> it.copy(isLoading = false, formError = e.detail)
+                    }
+                }
             }
         }
     }

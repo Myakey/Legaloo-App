@@ -16,6 +16,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.ambatujudge.legaloo.data.Course
 import org.ambatujudge.legaloo.ui.theme.LocalExtraColors
+import org.ambatujudge.legaloo.ui.components.LoadStatus
 import org.ambatujudge.legaloo.ui.components.pressClickable
 import org.ambatujudge.legaloo.ui.components.pressOffset
 import org.ambatujudge.legaloo.ui.components.rememberAnimatedProgress
@@ -25,11 +26,14 @@ import org.ambatujudge.legaloo.viewmodel.CourseViewModel
 @Composable
 fun CourseListScreen(viewModel: CourseViewModel, onCourseClick: (Int) -> Unit, modifier: Modifier = Modifier) {
     val courses by viewModel.courses.collectAsState()
+    val error by viewModel.error.collectAsState()
+    LaunchedEffect(Unit) { viewModel.refresh() }
     Column(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(horizontal = 28.dp)) {
         Spacer(Modifier.height(16.dp))
         Text("Kursus", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onBackground)
         Spacer(Modifier.height(24.dp))
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
+        if (courses.isEmpty()) LoadStatus(error = error, onRetry = viewModel::refresh)
+        else LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
             items(courses, key = { it.id }) { course ->
                 CourseCard(course = course, onClick = { onCourseClick(course.id) })
             }

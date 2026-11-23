@@ -47,6 +47,8 @@ import androidx.compose.ui.unit.sp
 import org.ambatujudge.legaloo.data.LevelNode
 import org.ambatujudge.legaloo.data.LevelState
 import org.ambatujudge.legaloo.data.LevelType
+import androidx.compose.runtime.LaunchedEffect
+import org.ambatujudge.legaloo.ui.components.LoadStatus
 import org.ambatujudge.legaloo.ui.components.pressClickable
 import org.ambatujudge.legaloo.ui.components.pressOffset
 import org.ambatujudge.legaloo.ui.components.rememberPressState
@@ -61,10 +63,13 @@ private val nodeOffsets = listOf(0, -56, -14, 42, 0, -56, -14, 42)
 fun CourseContentScreen(
     courseId: Int,
     viewModel: CourseViewModel,
-    onStartLesson: () -> Unit = {},
+    onStartLesson: (levelId: Int) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val courses by viewModel.courses.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
+    LaunchedEffect(courseId) { viewModel.refresh() }
     val course = courses.firstOrNull { it.id == courseId }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -77,7 +82,9 @@ fun CourseContentScreen(
     }
 
     Box(modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        if (course == null) {
+        if (course == null && (isLoading || error != null || courses.isEmpty())) {
+            LoadStatus(error = error, onRetry = viewModel::refresh)
+        } else if (course == null) {
             Text(
                 text = "Kursus tidak ditemukan",
                 style = MaterialTheme.typography.titleMedium,
@@ -100,11 +107,7 @@ fun CourseContentScreen(
                             level = level,
                             xOffset = nodeOffsets[index % nodeOffsets.size].dp,
                             onLockedClick = { showSnackbar("Selesaikan level sebelumnya dulu ya!") },
-                            onStartClick = {
-                                // Hanya "Hak dan Kewajiban" (id = 1) yang punya materi
-                                if (courseId == 1) onStartLesson()
-                                else showSnackbar("Materi ini segera hadir!")
-                            },
+                            onStartClick = { onStartLesson(level.id) },
                         )
                     }
                 }
@@ -154,7 +157,7 @@ private fun LevelNodeView(level: LevelNode, onLockedClick: () -> Unit, onStartCl
     when (level.state) {
         LevelState.COMPLETED -> StandardNode(
             face = MaterialTheme.colorScheme.secondary, edge = extra.secondaryEdge,
-            type = level.type, shakeOnClick = false, onClick = {},
+            type = level.type, shakeOnClick = false, onClick = onStartClick, // completed levels can be replayed
         )
         LevelState.LOCKED -> StandardNode(
             face = extra.lockedFill, edge = extra.lockedEdge,

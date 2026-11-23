@@ -1,14 +1,38 @@
 package org.ambatujudge.legaloo.viewmodel
 
 import androidx.lifecycle.ViewModel
-import org.ambatujudge.legaloo.data.Course
-import org.ambatujudge.legaloo.data.DummyData
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import org.ambatujudge.legaloo.data.Course
+import org.ambatujudge.legaloo.data.LegalooRepository
+import org.ambatujudge.legaloo.data.remote.ApiException
 
 class CourseViewModel : ViewModel() {
-    private val _courses = MutableStateFlow(DummyData.courses)
-    val courses: StateFlow<List<Course>> = _courses.asStateFlow()
-    fun getCourseById(id: Int): Course? = _courses.value.firstOrNull { it.id == id }
+    val courses: StateFlow<List<Course>> = LegalooRepository.courses
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
+
+    fun refresh() {
+        if (_isLoading.value) return
+        _isLoading.value = true
+        _error.value = null
+        viewModelScope.launch {
+            try {
+                LegalooRepository.refreshCourses()
+            } catch (e: ApiException) {
+                _error.value = e.detail
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun getCourseById(id: Int): Course? = courses.value.firstOrNull { it.id == id }
 }
